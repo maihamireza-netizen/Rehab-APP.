@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-import json
 
 # -------------------- PAGE CONFIG --------------------
 st.set_page_config(
@@ -22,12 +20,13 @@ st.markdown(
             font-weight: 700 !important;
             color: #1A3C7C;
             padding-top: 10px;
+            padding-bottom: 5px;
         }
 
         .subheader {
             font-size: 18px !important;
             color: #5A5A5A;
-            padding-bottom: 20px;
+            padding-bottom: 0px;
         }
 
         .card {
@@ -42,15 +41,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -------------------- SIDEBAR LOGO --------------------
+# -------------------- SIDEBAR --------------------
 st.sidebar.image("Logo.png", use_container_width=True)
 st.sidebar.markdown("---")
-
 st.sidebar.write("Use the navigation menu to choose a page.")
 
-# Main file intentionally left minimal
+# Main page content (this file is intentionally minimal)
 st.title("RehabAiQ Platform")
-
 st.write(
     """
     Welcome!  

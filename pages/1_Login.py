@@ -1,56 +1,46 @@
 import streamlit as st
 
-# -------------------- PAGE CONFIG --------------------
-st.set_page_config(
-    page_title="RehabAiQ",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.markdown("<div class='header-title'>RehabAiQ Access Portal</div>", unsafe_allow_html=True)
+st.markdown("<div class='subheader'>Select your access type to continue</div>", unsafe_allow_html=True)
+st.markdown("---")
 
-# -------------------- GLOBAL CSS --------------------
-st.markdown(
-    """
-    <style>
-        html, body, [class*="css"] {
-            font-family: 'Inter', sans-serif;
-        }
+# Initialize role
+if "user_role" not in st.session_state:
+    st.session_state.user_role = None
 
-        .header-title {
-            font-size: 32px !important;
-            font-weight: 700 !important;
-            color: #1A3C7C;
-            padding-top: 10px;
-            padding-bottom: 5px;
-        }
+colA, colB = st.columns(2)
 
-        .subheader {
-            font-size: 18px !important;
-            color: #5A5A5A;
-            padding-bottom: 0px;
-        }
+# ------------------- ADMIN ACCESS -------------------
+with colA:
+    if st.button("🛠️ Administrative Access", use_container_width=True):
+        st.session_state.user_role = "Admin"
+    st.markdown(
+        """
+        <div class='card'>
+            Manage KPIs, settings, and system-wide dashboards.
+        </div>
+        """, unsafe_allow_html=True
+    )
 
-        .card {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 20px;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# ------------------- CLINICIAN ACCESS -------------------
+with colB:
+    if st.button("🧑‍⚕️ Clinician Access", use_container_width=True):
+        st.session_state.user_role = "Clinician"
+    st.markdown(
+        """
+        <div class='card'>
+            Access patients, risk scores, and rehab recommendations.
+        </div>
+        """, unsafe_allow_html=True
+    )
 
-# -------------------- SIDEBAR --------------------
-st.sidebar.image("Logo.png", use_container_width=True)
-st.sidebar.markdown("---")
-st.sidebar.write("Use the navigation menu to choose a page.")
+st.markdown("---")
 
-# Main page content (this file is intentionally minimal)
-st.title("RehabAiQ Platform")
-st.write(
-    """
-    Welcome!  
-    Use the navigation sidebar to choose a page.
-    """
-)
+# Continue button
+cols = st.columns([6, 1])
+with cols[1]:
+    if st.session_state.user_role:
+        if st.button("Continue ➜", use_container_width=True):
+            st.switch_page("pages/2_Patient_Selection.py")
+    else:
+        st.button("Continue ➜", disabled=True, use_container_width=True)

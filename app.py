@@ -112,49 +112,84 @@ menu = st.sidebar.radio(
         "📊 Analytics Dashboard"
     ]
 )
+# Auto-navigation after clicking Continue
+if "force_menu_switch" in st.session_state:
+    menu = st.session_state["force_menu_switch"]
+    del st.session_state["force_menu_switch"]
+
 
 # ------------------------------ PAGE 1: LANDING PAGE ------------------------------
 if menu == "🏠 Landing Page":
-    st.markdown("<div class='header-title'>RehabAiQ Platform</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subheader'>AI-Driven Rehabilitation Intelligence for Healthcare Providers</div>", unsafe_allow_html=True)
+
+    # Title
+    st.markdown("<div class='header-title'>RehabAiQ Access Portal</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='subheader'>Select your access type to continue</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown("---")
+
+    st.write("## Choose Access Type")
+
+    # Initialize session state
+    if "user_role" not in st.session_state:
+        st.session_state.user_role = None
+
+    colA, colB = st.columns([1, 1])
+
+    # ------------------- ADMINISTRATIVE ACCESS -------------------
+    with colA:
+        if st.button("🛠️  Administrative Access", use_container_width=True):
+            st.session_state.user_role = "Administrative"
+
+        st.markdown(
+            """
+            <div style="
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                margin-top: 10px;
+            ">
+                Manage system settings, organizational KPIs, reports, and global configuration.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # ------------------- CLINICIAN ACCESS -------------------
+    with colB:
+        if st.button("🧑‍⚕️  Clinician Access", use_container_width=True):
+            st.session_state.user_role = "Clinician"
+
+        st.markdown(
+            """
+            <div style="
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                margin-top: 10px;
+            ">
+                Access patient data, risk scores, rehabilitation recommendations, and insights.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     st.markdown("---")
 
-    with st.container():
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.write(
-            """
-            Welcome to **RehabAiQ**, your intelligent rehabilitation support system.  
-            This application provides:
+    # ------------------- CONTINUE BUTTON -------------------
+    cont_col = st.columns([6, 1])
 
-            - Smart patient risk assessment  
-            - AI-driven facility recommendations  
-            - Patient-specific insights  
-            - Clinical dashboards  
-            - Allocation matrix visualization  
-            """
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
+    with cont_col[1]:
+        if st.session_state.user_role:
+            if st.button("Continue ➜", use_container_width=True):
+                st.session_state["force_menu_switch"] = "🧑‍⚕️ Patient Selection"
+                st.experimental_rerun()
+        else:
+            st.button("Continue ➜", disabled=True, use_container_width=True)
 
-# ------------------------------ PAGE 2: PATIENT SELECTION ------------------------------
-elif menu == "🧑‍⚕️ Patient Selection":
-
-    st.markdown("<div class='header-title'>Patient Selection</div>", unsafe_allow_html=True)
-
-    patients = json_df["patientId"].unique().tolist()
-
-    selected = st.multiselect(
-        "Select Patient(s):",
-        patients,
-        placeholder="Choose patients..."
-    )
-
-    if "selected_patients" not in st.session_state:
-        st.session_state.selected_patients = []
-
-    st.session_state.selected_patients = selected
-
-    st.success(f"{len(selected)} patient(s) selected.")
 
 # ------------------------------ PAGE 3: PATIENT PROFILE ------------------------------
 elif menu == "📋 Patient Profile":

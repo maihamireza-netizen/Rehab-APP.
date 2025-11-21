@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.graph_objects as go
+import numpy as np
 
 st.set_page_config(page_title="Facility Allocation", layout="wide")
 
@@ -15,90 +16,145 @@ def load_json():
 
 df = load_json()
 
-# Ensure categories are ordered
+# Ensure correct patient field
+df["Patient ID"] = df["Patient ID"].astype(str)
+
+# Ordered clinical categories
 ability_order = ["Low Ability", "Medium Ability", "High Ability"]
 stability_order = ["Low Risk", "Medium Risk", "High Risk"]
 
-df["patientParticipationAbility"] = pd.Categorical(df["patientParticipationAbility"], categories=ability_order, ordered=True)
-df["patientStabilityConditionRiskScore"] = pd.Categorical(df["patientStabilityConditionRiskScore"], categories=stability_order, ordered=True)
+df["patientParticipationAbility"] = pd.Categorical(
+    df["patientParticipationAbility"], categories=ability_order, ordered=True
+)
+df["patientStabilityConditionRiskScore"] = pd.Categorical(
+    df["patientStabilityConditionRiskScore"], categories=stability_order, ordered=True
+)
 
-# NUMERIC mapping for plotting
 ability_map = {"Low Ability": 0.5, "Medium Ability": 1.5, "High Ability": 2.5}
 stability_map = {"Low Risk": 0.5, "Medium Risk": 1.5, "High Risk": 2.5}
 
 df["ability_num"] = df["patientParticipationAbility"].map(ability_map)
 df["stability_num"] = df["patientStabilityConditionRiskScore"].map(stability_map)
 
+df["label"] = df["Patient ID"]
+
 # -------------------------
-# Layout
+# Page Header
 # -------------------------
 st.markdown("<h1 style='margin-bottom:0px;'>🏥 Facility Allocation</h1>", unsafe_allow_html=True)
-st.markdown("<p style='margin-top:0px;'>Interactive mock sliders + real patient allocation matrix.</p>", unsafe_allow_html=True)
+st.markdown("<p style='margin-top:0px;'>Mock KPI sliders + dynamic visualization of patient placement.</p>", unsafe_allow_html=True)
 
-left, right = st.columns([0.40, 0.60])
+left, right = st.columns([0.45, 0.55])
 
 # -------------------------
-# LEFT COLUMN (Mock UI)
+# LEFT COLUMN — KPI CONTROLS
 # -------------------------
 with left:
     st.markdown("""
-    <div style="padding:12px; background-color:#f9fafc; border-radius:10px; border:1px solid #e5e7eb;">
-    <h3 style="color:#1F2937; margin-top:0px;">⚙️ Allocation Model Settings (Mock)</h3>
-    <p style="color:#6b7280;">These controls are placeholders and do not affect model output.</p>
-    </div>
+        <div style="padding:12px; background-color:#f9fafc; border-radius:10px; border:1px solid #e5e7eb;">
+        <h3 style="color:#1F2937; margin-top:0px;">⚙️ Allocation Model Settings (Mock)</h3>
+        <p style="color:#6b7280;">These sliders visually reorganize the matrix but do not run the real model.</p>
+        </div>
     """, unsafe_allow_html=True)
 
-    # Cardiovascular
-    with st.expander("❤️ Cardiovascular KPI Thresholds", expanded=True):
-        st.number_input("Systolic BP Threshold", 90, 200, 170)
-        st.number_input("Diastolic BP Threshold", 50, 120, 90)
-        st.number_input("Heart Rate Threshold", 40, 200, 110)
-        st.number_input("Ejection Fraction Threshold", 10, 80, 40)
+    st.markdown("### ❤️ Cardiovascular KPI Weights")
+    cardio_w1 = st.slider("Priority Weight — Systolic BP", 1, 10, 5)
+    cardio_w2 = st.slider("Priority Weight — Diastolic BP", 1, 10, 5)
+    cardio_w3 = st.slider("Priority Weight — Heart Rate", 1, 10, 5)
+    cardio_w4 = st.slider("Priority Weight — Ejection Fraction", 1, 10, 5)
 
-        st.slider("Priority Weight (Cardio)", 1, 10, 5)
+    st.markdown("### 🩸 Diabetes KPI Weights")
+    diab_w1 = st.slider("Priority Weight — Glucose", 1, 10, 5)
+    diab_w2 = st.slider("Priority Weight — Hemoglobin A1C", 1, 10, 5)
 
-    # Diabetes
-    with st.expander("🩸 Diabetes KPI Thresholds", expanded=True):
-        st.number_input("Glucose Threshold", 50, 400, 200)
-        st.number_input("Hemoglobin A1C Threshold", 4, 15, 9)
-        st.slider("Priority Weight (Diabetes)", 1, 10, 5)
+    st.markdown("### 🧠 Neurological Weight")
+    neuro_w = st.slider("Priority Weight — Stroke Risk", 1, 10, 5)
 
-    # Neurological
-    with st.expander("🧠 Neurological Factors", expanded=True):
-        st.checkbox("Indicate Stroke History")
-        st.slider("Priority Weight (Neuro)", 1, 10, 5)
+    st.markdown("### 🏃 Participation Ability Weights")
+    part_w1 = st.slider("Priority Weight — Cognitive Impairment", 1, 10, 5)
+    part_w2 = st.slider("Priority Weight — Physical Limitation", 1, 10, 5)
+    part_w3 = st.slider("Priority Weight — Behavioral Challenges", 1, 10, 5)
+    part_w4 = st.slider("Priority Weight — Lifestyle Limitation", 1, 10, 5)
 
-    # Participation Ability
-    with st.expander("🏃 Participation Ability Factors", expanded=True):
-        st.checkbox("Physical Limitation")
-        st.checkbox("Cognitive Impairment")
-        st.checkbox("Behavioral Challenges")
-        st.slider("Priority Weight (Participation)", 1, 10, 5)
+    # Combine slider values to apply jitter
+    total_weight = (
+        cardio_w1 + cardio_w2 + cardio_w3 + cardio_w4 +
+        diab_w1 + diab_w2 + neuro_w +
+        part_w1 + part_w2 + part_w3 + part_w4
+    )
+
+    noise_strength = total_weight / 300
+    np.random.seed(42)
+
+    df["ability_perturbed"] = df["ability_num"] + np.random.uniform(-noise_strength, noise_strength, len(df))
+    df["stability_perturbed"] = df["stability_num"] + np.random.uniform(-noise_strength, noise_strength, len(df))
 
 
 # -------------------------
-# RIGHT COLUMN (REAL MATRIX)
+# RIGHT COLUMN — MATRIX + TABLES
 # -------------------------
 with right:
-    st.markdown("<h3 style='margin-top:0px;'>📊 Facility Allocation Matrix</h3>", unsafe_allow_html=True)
 
-    # Quadrant shading
-    fig = go.Figure()
+    # ---------------------------------------------
+    # FACILITY SUMMARY
+    # ---------------------------------------------
+    st.markdown("### 📌 Facility Summary")
 
-    # Create shaded background regions
-    colors = {
-        "ALF": "rgba(34,197,94,0.25)",   # green
-        "ARF": "rgba(59,130,246,0.25)",  # blue
-        "SNF": "rgba(168,85,247,0.25)",  # purple
-        "ACH": "rgba(239,68,68,0.25)"    # red
+    # Determine facility using quadrant rules
+    def assign_facility(a, s):
+        if a < 1:  # Low Ability
+            return "SNF"
+        if a < 2 and s < 1:
+            return "ALF"
+        if a < 2 and s >= 1:
+            return "ARF"
+        if a >= 2 and s < 1:
+            return "ALF"
+        if a >= 2 and s < 2:
+            return "ARF"
+        return "ACH"
+
+    df["Assigned Facility"] = df.apply(
+        lambda x: assign_facility(x["ability_perturbed"], x["stability_perturbed"]),
+        axis=1
+    )
+
+    facility_counts = df["Assigned Facility"].value_counts().reindex(["SNF", "ALF", "ARF", "ACH"]).fillna(0)
+
+    snf, alf, arf, ach = facility_counts["SNF"], facility_counts["ALF"], facility_counts["ARF"], facility_counts["ACH"]
+
+    total = len(df)
+
+    colA, colB, colC, colD = st.columns(4)
+
+    colA.metric("🏥 SNF", f"{snf}", f"{(snf/total)*100:.1f}%")
+    colB.metric("🏡 ALF", f"{alf}", f"{(alf/total)*100:.1f}%")
+    colC.metric("🛏 ARF", f"{arf}", f"{(arf/total)*100:.1f}%")
+    colD.metric("🏨 ACH", f"{ach}", f"{(ach/total)*100:.1f}%")
+
+
+    # ---------------------------------------------
+    # ALLOCATION MATRIX
+    # ---------------------------------------------
+    st.markdown("### 📊 Allocation Matrix")
+
+    quadrant_colors = {
+        "ALF": "rgba(0,200,83,0.35)",
+        "ARF": "rgba(30,144,255,0.35)",
+        "SNF": "rgba(147,51,234,0.35)",
+        "ACH": "rgba(255,48,48,0.35)"
     }
 
-    # Quadrant grid coordinates
+    fig = go.Figure()
+
+    # Quadrants
     regions = [
-        ("ALF", 1, 3, 1, 2),   # Medium/High Ability + Low Risk
-        ("ARF", 1, 3, 2, 3),   # Medium/High Ability + Medium/High Risk
-        ("SNF", 0, 1, 0, 3),   # Low Ability across all risks
-        ("ACH", 2, 3, 2, 3),   # High Risk + High Ability
+        ("SNF", 0, 1, 0, 3),
+        ("ALF", 1, 2, 0, 1),
+        ("ARF", 1, 2, 1, 3),
+        ("ALF", 2, 3, 0, 1),
+        ("ARF", 2, 3, 1, 2),
+        ("ACH", 2, 3, 2, 3),
     ]
 
     for name, y0, y1, x0, x1 in regions:
@@ -106,55 +162,54 @@ with right:
             type="rect",
             x0=x0, x1=x1,
             y0=y0, y1=y1,
-            fillcolor=colors[name],
-            line=dict(width=0),
+            fillcolor=quadrant_colors[name],
+            line=dict(width=2, color="white"),
             layer="below"
         )
 
-    # Scatter plot of patients
+    # Scatter with patient labels
     fig.add_trace(go.Scatter(
-        x=df["stability_num"],
-        y=df["ability_num"],
-        mode="markers",
-        marker=dict(size=12, color="yellow", line=dict(color="black", width=1)),
-        text=df["patientid"] if "patientid" in df.columns else df.index,
-        hovertemplate="<b>Patient:</b> %{text}<br>Ability: %{y}<br>Stability: %{x}<extra></extra>"
+        x=df["stability_perturbed"],
+        y=df["ability_perturbed"],
+        mode="markers+text",
+        marker=dict(size=14, color="yellow", line=dict(color="black", width=1)),
+        text=df["Patient ID"],
+        textposition="top center",
+        hovertemplate="<b>%{text}</b><br>Ability: %{y:.2f}<br>Stability: %{x:.2f}<extra></extra>"
     ))
-
-    # Add quadrant labels
-    labels = {
-        "ALF": (0.5, 2.5),
-        "ARF": (2.0, 2.5),
-        "SNF": (1.0, 0.5),
-        "ACH": (2.5, 2.5)
-    }
-
-    for lbl, (x, y) in labels.items():
-        fig.add_annotation(
-            x=x,
-            y=y,
-            text=f"<b>{lbl}</b>",
-            showarrow=False,
-            font=dict(size=22, color="#111"),
-            opacity=0.8
-        )
 
     fig.update_layout(
         xaxis=dict(
             tickvals=[0.5, 1.5, 2.5],
             ticktext=["Low Risk", "Medium Risk", "High Risk"],
-            title="Stability Condition Risk",
+            title="<b>Stability Condition Risk</b>",
             range=[0, 3]
         ),
         yaxis=dict(
             tickvals=[0.5, 1.5, 2.5],
             ticktext=["Low Ability", "Medium Ability", "High Ability"],
-            title="Participation Ability",
+            title="<b>Participation Ability</b>",
             range=[0, 3]
         ),
         height=650,
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=10, r=10, t=40, b=10),
         plot_bgcolor="white"
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
+
+    # ---------------------------------------------
+    # PATIENT ALLOCATION TABLE
+    # ---------------------------------------------
+    st.markdown("### 📋 Patient Allocation Table")
+
+    allocation_df = df[[
+        "Patient ID",
+        "patientParticipationAbility",
+        "patientStabilityConditionRiskScore",
+        "Assigned Facility"
+    ]].sort_values("Assigned Facility")
+
+    st.dataframe(allocation_df, use_container_width=True)
+

@@ -24,10 +24,11 @@ def set_bg(png_file):
         unsafe_allow_html=True
     )
 
+# IMPORTANT — your file must be named EXACTLY this:
 set_bg("LoginBG.png")
 
 # ------------------------------------------------
-# PAGE TITLE (top-left)
+# PAGE TITLE
 # ------------------------------------------------
 st.markdown(
     """
@@ -35,19 +36,11 @@ st.markdown(
         color:#0f172a;
         font-weight:700;
         margin-top:40px;
-        margin-left:40px;
-        position:relative;
-        z-index:5;">
+        margin-left:40px;">
         RehabAiQ Access Portal
     </h1>
 
-    <p style="
-        margin-left:40px;
-        margin-top:-10px;
-        font-size:16px;
-        color:#0f172a;
-        position:relative;
-        z-index:5;">
+    <p style='margin-left:40px; margin-top:-10px; color:#0f172a;'>
         Select your access type to continue
     </p>
     """,
@@ -55,48 +48,51 @@ st.markdown(
 )
 
 # ------------------------------------------------
-# PERFECT CENTERED BUTTONS (Independent Layer)
+# BUTTON CENTERING + STYLING
 # ------------------------------------------------
 st.markdown(
     """
     <style>
-        /* Absolute centered container */
         .center-wrapper {
             position: fixed;
-            top: 58%;
+            top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: flex;
             flex-direction: row;
-            gap: 50px;
-            z-index: 10;
+            gap: 40px;
+            z-index: 1000;
         }
 
-        /* Button style */
         .access-btn {
             background-color: #4fb7dd;
             color: white !important;
-            padding: 16px 34px;
+            padding: 15px 34px;
             border-radius: 30px;
             font-size: 18px;
             font-weight: 500;
             border: none;
             cursor: pointer;
-            box-shadow: 0px 5px 12px rgba(0,0,0,0.25);
-            transition: 0.25s ease-in-out;
+            box-shadow: 0px 5px 12px rgba(0,0,0,0.2);
+            transition: 0.25s;
         }
 
         .access-btn:hover {
             background-color: #3aa6c8;
-            transform: scale(1.05);
-        }
-
-        .access-btn:active {
-            transform: scale(0.97);
+            transform: scale(1.06);
         }
     </style>
+    """,
+    unsafe_allow_html=True
+)
 
+# ------------------------------------------------
+# BUTTONS (No escaped HTML — Correct)
+# ------------------------------------------------
+st.markdown(
+    """
     <div class="center-wrapper">
+
         <form action="/Patient_Selection">
             <button class="access-btn">⚙️ Administrative Access</button>
         </form>
@@ -104,6 +100,7 @@ st.markdown(
         <form action="/Patient_Selection">
             <button class="access-btn">👩‍⚕️ Clinician Access</button>
         </form>
+
     </div>
     """,
     unsafe_allow_html=True

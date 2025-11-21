@@ -61,47 +61,50 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- PERFECTLY CENTERED BUTTONS ---
+# --- PERFECT CENTERING USING ABSOLUTE HTML LAYER ---
 st.markdown("""
-    <style>
-        .center-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
-            margin-top: 40px;
-        }
+<style>
+/* Absolute container centered in the page */
+.center-abs {
+    position: absolute;
+    top: 55%;                     
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+}
 
-        .access-btn {
-            background-color: #4fb7dd;
-            color: white !important;
-            padding: 12px 28px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
-            transition: 0.2s ease-in-out;
-        }
+/* Button styling */
+.center-btn {
+    background-color: #4fb7dd;
+    color: white !important;
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+    transition: 0.2s ease-in-out;
+}
 
-        .access-btn:hover {
-            background-color: #3aa6c8;
-            transform: translateY(-2px);
-        }
-    </style>
+.center-btn:hover {
+    background-color: #3aa6c8;
+    transform: scale(1.04);
+}
+</style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="center-container">', unsafe_allow_html=True)
+# HTML wrapper
+st.markdown("""
+<div class="center-abs">
+    <form action="/Patient_Selection">
+        <button class="center-btn">⚙️ Administrative Access</button>
+    </form>
 
-colA, colB = st.columns([1,1])
-
-with colA:
-    admin_click = st.button("⚙️ Administrative Access", key="admin_btn", help="Admin login", use_container_width=False)
-
-with colB:
-    clinician_click = st.button("👩‍⚕️ Clinician Access", key="clin_btn", help="Clinician login", use_container_width=False)
-
-st.markdown('</div>', unsafe_allow_html=True)
-
+    <form action="/Patient_Selection">
+        <button class="center-btn">👩‍⚕️ Clinician Access</button>
+    </form>
+</div>
+""", unsafe_allow_html=True)

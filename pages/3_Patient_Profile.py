@@ -4,13 +4,12 @@ import json
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
-from sklearn.linear_model import LinearRegression
 
 st.set_page_config(page_title="Patient Profile", layout="wide")
 
-# -------------------------------------------------
-# Load CSV (clinical data) and JSON model
-# -------------------------------------------------
+# ------------------------------------------------------------
+# LOAD DATA
+# ------------------------------------------------------------
 @st.cache_data
 def load_csv():
     return pd.read_csv("merged_data_RehabAiQ_Demo.csv")
@@ -23,213 +22,282 @@ def load_json():
 csv_df = load_csv()
 json_df = load_json()
 
-# -------------------------------------------------
-# UI Styling
-# -------------------------------------------------
+# ------------------------------------------------------------
+# STYLE (Hybrid Blue + Teal)
+# ------------------------------------------------------------
 st.markdown("""
 <style>
+
 .page-title {
     font-size: 32px;
-    font-weight: 800;
-    color: #2e466c;
+    font-weight: 900;
+    color: #1d3557;
     margin-bottom: -4px;
 }
+
 .section-title {
     font-size: 22px;
     font-weight: 700;
-    color: #2e466c;
-    margin-top: 30px;
+    color: #1d3557;
+    margin-top: 35px;
 }
-.kpi-box {
-    background-color: #f9fbff;
-    padding: 18px;
-    border-radius: 10px;
-    border: 1px solid #d8e3f2;
+
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #dce3eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.kpi-card {
+    padding: 16px;
+    border-radius: 14px;
     text-align: center;
+    color: white;
+    background: linear-gradient(135deg, #1d3557 0%, #008b8b 100%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
+
 .kpi-value {
     font-size: 26px;
-    font-weight: 700;
-    color: #2e466c;
+    font-weight: 800;
 }
+
 .kpi-label {
     font-size: 14px;
-    color: #6a7c92;
+    opacity: 0.9;
 }
+
+.kpi-good {
+    background: linear-gradient(135deg, #2a9d8f 0%, #1d7874 100%);
+}
+
+.kpi-warn {
+    background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+}
+
+.kpi-bad {
+    background: linear-gradient(135deg, #e63946 0%, #b4161b 100%);
+}
+
 .risk-flag {
-    background: #ffecec;
-    border-left: 6px solid #d9534f;
+    background: #ffefef;
+    border-left: 6px solid #e63946;
     padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    color: #8a2724;
+    border-radius: 10px;
     font-weight: 600;
+    color: #b4161b;
+    margin-bottom: 6px;
 }
+
+.sparkline {
+    margin-top: -10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------
-# Patient Selection
-# -------------------------------------------------
-patient_name_list = sorted(json_df["patientId"].unique())
-selected_patient = st.selectbox("Choose patient", patient_name_list)
+# ------------------------------------------------------------
+# PATIENT DROPDOWN
+# ------------------------------------------------------------
+patient_list = sorted(json_df["patientId"].unique())
+selected_patient = st.selectbox("Choose patient", patient_list)
 
 st.markdown(f"<div class='page-title'>Patient Profile — {selected_patient}</div>", unsafe_allow_html=True)
 st.write("")
 
-# -------------------------------------------------
-# Filter JSON for demographics
-# -------------------------------------------------
+# ------------------------------------------------------------
+# JSON DEMOGRAPHICS
+# ------------------------------------------------------------
 pdata = json_df[json_df["patientId"] == selected_patient].iloc[0]
+
 age = pdata.get("patientAge", "N/A")
 payor = pdata.get("patientPrimaryPayor", "N/A")
 stability = pdata.get("patientStabilityConditionRiskScore", "N/A")
 ability = pdata.get("patientParticipationAbility", "N/A")
 
-# -------------------------------------------------
-# Filter CSV for patient clinical data
-# -------------------------------------------------
+# ------------------------------------------------------------
+# CSV CLINICAL DATA
+# ------------------------------------------------------------
 pdf = csv_df[csv_df["file_name"] == selected_patient].copy()
-if "Date" in pdf:
+
+if "Date" in pdf.columns:
     pdf["Date"] = pd.to_datetime(pdf["Date"], errors="coerce")
+    pdf = pdf.sort_values("Date")
 
-# -------------------------------------------------
-# KPI Function
-# -------------------------------------------------
-def safe_avg(col):
-    return round(pdf[col].dropna().astype(float).mean(), 1) if col in pdf.columns else None
+# ------------------------------------------------------------
+# KPI CALC
+# ------------------------------------------------------------
+def avg(col):
+    if col in pdf and pdf[col].dropna().shape[0] > 0:
+        return round(pdf[col].astype(float).mean(), 1)
+    return None
 
-kpi_heart = safe_avg("Heart rate (/min)")
-kpi_sys = safe_avg("Systolic Blood Pressure (mm[Hg])")
-kpi_dia = safe_avg("Diastolic Blood Pressure (mm[Hg])")
-kpi_glucose = safe_avg("Glucose (mg/dL)")
-kpi_a1c = safe_avg("Hemoglobin A1c/Hemoglobin.total in Blood (%)")
-kpi_ef = safe_avg("Left ventricular Ejection fraction (%)")
+heart = avg("Heart rate (/min)")
+sys = avg("Systolic Blood Pressure (mm[Hg])")
+dia = avg("Diastolic Blood Pressure (mm[Hg])")
+glu = avg("Glucose (mg/dL)")
+a1c = avg("Hemoglobin A1c/Hemoglobin.total in Blood (%)")
+ef = avg("Left ventricular Ejection fraction (%)")
 
-# -------------------------------------------------
-# Trend Slope Function
-# -------------------------------------------------
-def compute_slope(df, col):
-    if col not in df.columns or df[col].dropna().empty:
-        return None
-    tmp = df.dropna(subset=[col])
-    if len(tmp) < 2:
-        return None
-    x = np.array(range(len(tmp))).reshape(-1, 1)
-    y = tmp[col].astype(float).values.reshape(-1, 1)
-    model = LinearRegression().fit(x, y)
-    slope = model.coef_[0][0]
-    return round(slope, 3)
+# ------------------------------------------------------------
+# KPI COLOR LOGIC
+# ------------------------------------------------------------
+def kpi_style(vital, val):
+    if val is None:
+        return "kpi-card"
+    if vital == "sys":
+        if val >= 140: return "kpi-card kpi-bad"
+        if val >= 130: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    if vital == "dia":
+        if val >= 90: return "kpi-card kpi-bad"
+        if val >= 85: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    if vital == "hr":
+        if val > 110: return "kpi-card kpi-bad"
+        if val > 100: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    if vital == "glu":
+        if val > 180: return "kpi-card kpi-bad"
+        if val > 140: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    if vital == "a1c":
+        if val > 6.5: return "kpi-card kpi-bad"
+        if val > 6: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    if vital == "ef":
+        if val < 40: return "kpi-card kpi-bad"
+        if val < 50: return "kpi-card kpi-warn"
+        return "kpi-card kpi-good"
+    return "kpi-card"
 
-trend_heart = compute_slope(pdf, "Heart rate (/min)")
-trend_sys = compute_slope(pdf, "Systolic Blood Pressure (mm[Hg])")
-trend_dia = compute_slope(pdf, "Diastolic Blood Pressure (mm[Hg])")
-trend_glu = compute_slope(pdf, "Glucose (mg/dL)")
+# ------------------------------------------------------------
+# KPI ROWS (2 COLUMNS × 3)
+# ------------------------------------------------------------
+st.markdown("<div class='section-title'>Clinical KPIs</div>", unsafe_allow_html=True)
 
-# -------------------------------------------------
-# Risk Flags
-# -------------------------------------------------
+kpi_cols = st.columns(3)
+metrics = [
+    ("hr", heart, "Heart Rate"),
+    ("sys", sys, "Systolic BP"),
+    ("dia", dia, "Diastolic BP"),
+    ("glu", glu, "Glucose"),
+    ("a1c", a1c, "Hemoglobin A1C"),
+    ("ef", ef, "Ejection Fraction"),
+]
+
+for (i, (code, val, label)) in enumerate(metrics):
+    col = kpi_cols[i % 3]
+    with col:
+        st.markdown(f"<div class='{kpi_style(code, val)}'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='kpi-value'>{val if val else 'N/A'}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='kpi-label'>{label}</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# RISK FLAGS
+# ------------------------------------------------------------
 flags = []
 
-if kpi_sys and kpi_sys > 140:
+if sys and sys >= 140:
     flags.append("⚠️ Possible Hypertension — Elevated Systolic BP")
-if kpi_dia and kpi_dia > 90:
+if dia and dia >= 90:
     flags.append("⚠️ Possible Hypertension — Elevated Diastolic BP")
-if kpi_glucose and kpi_glucose > 180:
-    flags.append("⚠️ Hyperglycemia Risk — High Glucose Levels")
-if kpi_a1c and kpi_a1c > 6.5:
-    flags.append("⚠️ Diabetes Risk — Elevated Hemoglobin A1C")
-if kpi_ef and kpi_ef < 40:
+if glu and glu >= 180:
+    flags.append("⚠️ Hyperglycemia — High Glucose Levels")
+if a1c and a1c >= 6.5:
+    flags.append("⚠️ Diabetes Risk — Elevated A1C")
+if ef and ef < 40:
     flags.append("⚠️ Heart Failure Risk — Low Ejection Fraction")
-if trend_sys and trend_sys > 0.5:
-    flags.append("⚠️ BP Trend Increasing — Monitor Closely")
 
-# -------------------------------------------------
-# Display Risk Flags
-# -------------------------------------------------
 if flags:
     st.markdown("<div class='section-title'>Risk Flags</div>", unsafe_allow_html=True)
     for f in flags:
         st.markdown(f"<div class='risk-flag'>{f}</div>", unsafe_allow_html=True)
 
-# -------------------------------------------------
-# AI-Style Clinical Summary
-# -------------------------------------------------
-summary = f"""
-### 🧠 Clinical Summary
-Patient **{selected_patient}**, age **{age}**, shows:
+# ------------------------------------------------------------
+# CLINICAL SUMMARY
+# ------------------------------------------------------------
+summary_text = f"""
+### 🧠 Clinical Summary  
+Patient **{selected_patient}**, age **{age}**, insured via **{payor}**:
 
-- **Blood Pressure Trend:** {'increasing' if trend_sys and trend_sys > 0 else 'stable/decreasing'}
-- **Glucose Levels:** {'elevated' if kpi_glucose and kpi_glucose > 150 else 'normal range'}
-- **Heart Rate:** averaging **{kpi_heart} bpm**, trend is {'upward' if trend_heart and trend_heart > 0 else 'stable'}
-- **Ejection Fraction:** **{kpi_ef}%**, indicating { 'potential cardiac impairment' if kpi_ef and kpi_ef < 50 else 'normal ventricular function'}
+- **Stability Risk:** {stability}  
+- **Participation Ability:** {ability}  
 
-Overall, the patient displays:  
-- **{stability} stability risk category**  
-- **{ability} participation ability**  
+Key observations:
+- **Blood pressure:** {sys} / {dia} mmHg  
+- **Heart rate:** {heart} bpm  
+- **Glucose:** {glu} mg/dL  
+- **A1C:** {a1c}%  
+- **Ejection Fraction:** {ef}%  
+
 """
 
-st.markdown(summary)
+st.markdown(summary_text)
 
-# -------------------------------------------------
-# KPI Row
-# -------------------------------------------------
-st.markdown("<div class='section-title'>Clinical Summary Metrics</div>", unsafe_allow_html=True)
+# ------------------------------------------------------------
+# 2-COLUMN LAYOUT FOR CHARTS
+# ------------------------------------------------------------
+st.markdown("<div class='section-title'>Clinical Trends</div>", unsafe_allow_html=True)
+left_col, right_col = st.columns(2)
 
-k1, k2, k3, k4, k5, k6 = st.columns(6)
+# Helper chart function
+def line_chart(col, df, y, title, color):
+    if y not in df.columns:
+        return
+    fig = px.line(df, x="Date", y=y, title=title, markers=True,
+                  color_discrete_sequence=[color])
+    fig.update_layout(template="simple_white")
+    col.plotly_chart(fig, use_container_width=True)
 
-def kpi(col, value, label):
-    with col:
-        st.markdown("<div class='kpi-box'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='kpi-value'>{value if value else 'N/A'}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='kpi-label'>{label}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+with left_col:
+    line_chart(left_col, pdf, "Systolic Blood Pressure (mm[Hg])", "Systolic BP Trend", "#1d3557")
+    line_chart(left_col, pdf, "Heart rate (/min)", "Heart Rate Trend", "#008b8b")
 
-kpi(k1, kpi_heart, "Avg Heart Rate")
-kpi(k2, kpi_sys, "Avg Systolic BP")
-kpi(k3, kpi_dia, "Avg Diastolic BP")
-kpi(k4, kpi_glucose, "Avg Glucose")
-kpi(k5, kpi_a1c, "Avg Hemoglobin A1C")
-kpi(k6, kpi_ef, "Ejection Fraction")
+with right_col:
+    line_chart(right_col, pdf, "Glucose (mg/dL)", "Glucose Trend", "#6a4c93")
+    line_chart(right_col, pdf, "Left ventricular Ejection fraction (%)", "Ejection Fraction Trend", "#2a9d8f")
 
-# -------------------------------------------------
-# Radar Chart
-# -------------------------------------------------
-st.markdown("<div class='section-title'>Clinical Radar Overview</div>", unsafe_allow_html=True)
+# ------------------------------------------------------------
+# RADAR CHART
+# ------------------------------------------------------------
+st.markdown("<div class='section-title'>Overall Clinical Fingerprint</div>", unsafe_allow_html=True)
 
-radar_vals = [kpi_heart or 0, kpi_sys or 0, kpi_dia or 0, kpi_glucose or 0, kpi_a1c or 0, kpi_ef or 0]
-radar_labels = ["Heart Rate", "Sys BP", "Dia BP", "Glucose", "A1C", "EF"]
+radar_vals = [
+    heart or 0,
+    sys or 0,
+    dia or 0,
+    glu or 0,
+    a1c or 0,
+    ef or 0
+]
 
-fig = go.Figure()
-fig.add_trace(go.Scatterpolar(
+radar_labels = ["HR", "SysBP", "DiaBP", "Glucose", "A1C", "EF"]
+
+fig_radar = go.Figure()
+fig_radar.add_trace(go.Scatterpolar(
     r=radar_vals,
     theta=radar_labels,
     fill='toself',
-    name="Patient Metrics",
-    line_color="#3a8ddf"
+    name="Vitals",
+    line_color="#1d3557"
 ))
-fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False)
-st.plotly_chart(fig, use_container_width=True)
+fig_radar.update_layout(template="simple_white", showlegend=False)
+st.plotly_chart(fig_radar, use_container_width=True)
 
-# -------------------------------------------------
-# Timeline Chart
-# -------------------------------------------------
-if "Date" in pdf:
-    st.markdown("<div class='section-title'>Clinical Timeline</div>", unsafe_allow_html=True)
-    timeline = pdf.groupby("Date").size().reset_index(name="Events")
-    fig_tl = px.bar(timeline, x="Date", y="Events", title="Events per Day")
-    st.plotly_chart(fig_tl, use_container_width=True)
+# ------------------------------------------------------------
+# CONDITIONS & NOTES IN 2 COLUMNS
+# ------------------------------------------------------------
+st.markdown("<div class='section-title'>Conditions & Notes</div>", unsafe_allow_html=True)
+c1, c2 = st.columns(2)
 
-# -------------------------------------------------
-# Conditions Table
-# -------------------------------------------------
 if "Condition_display" in pdf:
-    st.markdown("<div class='section-title'>Conditions</div>", unsafe_allow_html=True)
-    st.dataframe(pdf[["Condition_display","Condition_code"]].drop_duplicates(), use_container_width=True)
+    c1.markdown("### Conditions")
+    c1.dataframe(pdf[["Condition_display", "Condition_code"]].drop_duplicates())
 
-# -------------------------------------------------
-# Notes Table
-# -------------------------------------------------
 if "Note" in pdf:
-    st.markdown("<div class='section-title'>Clinical Notes</div>", unsafe_allow_html=True)
-    st.dataframe(pdf[["Date","Note"]].dropna(), use_container_width=True)
+    c2.markdown("### Clinical Notes")
+    c2.dataframe(pdf[["Date", "Note"]].dropna())

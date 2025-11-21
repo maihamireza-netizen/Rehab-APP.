@@ -61,21 +61,47 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------------------
-# BUTTON ROW
-# ------------------------------------------------------------
-col1, col2, col3 = st.columns([1,3,1])
+# --- PERFECTLY CENTERED BUTTONS ---
+st.markdown("""
+    <style>
+        .center-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
 
-with col2:
-    st.markdown("<div class='center-box'>", unsafe_allow_html=True)
+        .access-btn {
+            background-color: #4fb7dd;
+            color: white !important;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+            transition: 0.2s ease-in-out;
+        }
 
-    admin_clicked = st.button("⚙️ Administrative Access", key="admin_btn", help="Enter the administrative dashboard", use_container_width=False)
-    clinician_clicked = st.button("👩‍⚕️ Clinician Access", key="clinician_btn", help="Enter the clinician dashboard", use_container_width=False)
+        .access-btn:hover {
+            background-color: #3aa6c8;
+            transform: translateY(-2px);
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown('<div class="center-container">', unsafe_allow_html=True)
 
-# ------------------------------------------------------------
-# Navigation Logic
-# ------------------------------------------------------------
-if admin_clicked or clinician_clicked:
-    st.switch_page("pages/2_Patient_Selection.py")
+colA, colB = st.columns([1,1])
+
+with colA:
+    admin_click = st.button("⚙️ Administrative Access", key="admin_btn", help="Admin login", use_container_width=False)
+
+with colB:
+    clinician_click = st.button("👩‍⚕️ Clinician Access", key="clin_btn", help="Clinician login", use_container_width=False)
+
+st.markdown('</div>', unsafe_allow_html=True)
+

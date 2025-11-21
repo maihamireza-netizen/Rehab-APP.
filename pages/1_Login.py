@@ -45,3 +45,8 @@ with col2:
 if admin or clinician:
     st.experimental_set_query_params(page="Patient_Selection")
     st.experimental_rerun()
+
+if admin or clinician:
+    st.experimental_set_query_params(page="Patient_Selection")
+    st.experimental_rerun()
+

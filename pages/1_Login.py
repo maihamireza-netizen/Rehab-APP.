@@ -1,10 +1,11 @@
 import streamlit as st
 import base64
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="RehabAiQ Login", layout="wide")
 
 # ------------------------------------------------
-# SET BACKGROUND IMAGE
+# BACKGROUND IMAGE
 # ------------------------------------------------
 def set_bg(png_file):
     with open(png_file, "rb") as f:
@@ -14,7 +15,7 @@ def set_bg(png_file):
         f"""
         <style>
         .stApp {{
-            background: url("data:image/png;base64,{encoded}");
+            background-image: url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -24,23 +25,18 @@ def set_bg(png_file):
         unsafe_allow_html=True
     )
 
-# IMPORTANT — your file must be named EXACTLY this:
 set_bg("LoginBG.png")
 
 # ------------------------------------------------
-# PAGE TITLE
+# TITLE
 # ------------------------------------------------
 st.markdown(
     """
-    <h1 style="
-        color:#0f172a;
-        font-weight:700;
-        margin-top:40px;
-        margin-left:40px;">
+    <h1 style="color:#0f172a; font-weight:700; margin-top:40px; margin-left:40px;">
         RehabAiQ Access Portal
     </h1>
 
-    <p style='margin-left:40px; margin-top:-10px; color:#0f172a;'>
+    <p style="margin-left:40px; margin-top:-10px; color:#0f172a;">
         Select your access type to continue
     </p>
     """,
@@ -48,60 +44,59 @@ st.markdown(
 )
 
 # ------------------------------------------------
-# BUTTON CENTERING + STYLING
+# PERFECTLY CENTERED BUTTONS (via st.components.html)
 # ------------------------------------------------
-st.markdown(
-    """
-    <style>
-        .center-wrapper {
-            position: fixed;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: row;
-            gap: 40px;
-            z-index: 1000;
-        }
 
-        .access-btn {
-            background-color: #4fb7dd;
-            color: white !important;
-            padding: 15px 34px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0px 5px 12px rgba(0,0,0,0.2);
-            transition: 0.25s;
-        }
+html_code = """
+<html>
+<head>
+<style>
+.center-wrapper {
+    position: fixed;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 40px;
+    z-index: 9999;
+}
 
-        .access-btn:hover {
-            background-color: #3aa6c8;
-            transform: scale(1.06);
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+.btn {
+    background-color: #4fb7dd;
+    color: white;
+    padding: 16px 34px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 6px 15px rgba(0,0,0,0.25);
+    transition: 0.25s;
+}
 
-# ------------------------------------------------
-# BUTTONS (No escaped HTML — Correct)
-# ------------------------------------------------
-st.markdown(
-    """
-    <div class="center-wrapper">
+.btn:hover {
+    background-color: #3aa6c8;
+    transform: scale(1.06);
+}
+</style>
+</head>
 
-        <form action="/Patient_Selection">
-            <button class="access-btn">⚙️ Administrative Access</button>
-        </form>
+<body>
 
-        <form action="/Patient_Selection">
-            <button class="access-btn">👩‍⚕️ Clinician Access</button>
-        </form>
+<div class="center-wrapper">
 
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    <form action="/Patient_Selection">
+        <button class="btn">⚙️ Administrative Access</button>
+    </form>
+
+    <form action="/Patient_Selection">
+        <button class="btn">👩‍⚕️ Clinician Access</button>
+    </form>
+
+</div>
+
+</body>
+</html>
+"""
+
+components.html(html_code, height=500)

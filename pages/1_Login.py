@@ -1,20 +1,20 @@
 import streamlit as st
 import base64
 
-st.set_page_config(page_title="Login", layout="wide")
+st.set_page_config(page_title="RehabAiQ Login", layout="wide")
 
-# ------------------------------------------------------------
-# 🎨 Set Background Image
-# ------------------------------------------------------------
-def set_bg(image_file):
-    with open(image_file, "rb") as f:
+# ------------------------------------------------
+# SET BACKGROUND IMAGE
+# ------------------------------------------------
+def set_bg(png_file):
+    with open(png_file, "rb") as f:
         data = f.read()
     encoded = base64.b64encode(data).decode()
     st.markdown(
         f"""
         <style>
         .stApp {{
-            background-image: url("data:image/png;base64,{encoded}");
+            background: url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -24,87 +24,87 @@ def set_bg(image_file):
         unsafe_allow_html=True
     )
 
-set_bg("LoginBG.png")    # make sure this file is in your repo root
+set_bg("LoginBG.png")
 
+# ------------------------------------------------
+# PAGE TITLE (top-left)
+# ------------------------------------------------
+st.markdown(
+    """
+    <h1 style="
+        color:#0f172a;
+        font-weight:700;
+        margin-top:40px;
+        margin-left:40px;
+        position:relative;
+        z-index:5;">
+        RehabAiQ Access Portal
+    </h1>
 
-# ------------------------------------------------------------
-# PAGE LAYOUT
-# ------------------------------------------------------------
-st.markdown("<h1 style='color:#0F172A; font-weight:700;'>RehabAiQ Access Portal</h1>", unsafe_allow_html=True)
-st.markdown("<p style='margin-top:-10px; font-size:16px;'>Select your access type to continue</p>", unsafe_allow_html=True)
+    <p style="
+        margin-left:40px;
+        margin-top:-10px;
+        font-size:16px;
+        color:#0f172a;
+        position:relative;
+        z-index:5;">
+        Select your access type to continue
+    </p>
+    """,
+    unsafe_allow_html=True
+)
 
-# Center the two buttons using CSS
-st.markdown("""
+# ------------------------------------------------
+# PERFECT CENTERED BUTTONS (Independent Layer)
+# ------------------------------------------------
+st.markdown(
+    """
     <style>
-        .center-box {
+        /* Absolute centered container */
+        .center-wrapper {
+            position: fixed;
+            top: 58%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-top: 40px;
+            flex-direction: row;
+            gap: 50px;
+            z-index: 10;
         }
+
+        /* Button style */
         .access-btn {
-            background-color: #3DB5D9;
+            background-color: #4fb7dd;
             color: white !important;
-            padding: 12px 32px;
+            padding: 16px 34px;
             border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 500;
             border: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
-            transition: 0.2s ease-in-out;
+            cursor: pointer;
+            box-shadow: 0px 5px 12px rgba(0,0,0,0.25);
+            transition: 0.25s ease-in-out;
         }
+
         .access-btn:hover {
-            background-color: #2AA5C5;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.35);
-            transform: translateY(-2px);
+            background-color: #3aa6c8;
+            transform: scale(1.05);
+        }
+
+        .access-btn:active {
+            transform: scale(0.97);
         }
     </style>
-""", unsafe_allow_html=True)
 
-# --- PERFECT CENTERING USING ABSOLUTE HTML LAYER ---
-st.markdown("""
-<style>
-/* Absolute container centered in the page */
-.center-abs {
-    position: absolute;
-    top: 55%;                     
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: row;
-    gap: 40px;
-}
+    <div class="center-wrapper">
+        <form action="/Patient_Selection">
+            <button class="access-btn">⚙️ Administrative Access</button>
+        </form>
 
-/* Button styling */
-.center-btn {
-    background-color: #4fb7dd;
-    color: white !important;
-    padding: 14px 32px;
-    border-radius: 30px;
-    font-size: 18px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-    transition: 0.2s ease-in-out;
-}
-
-.center-btn:hover {
-    background-color: #3aa6c8;
-    transform: scale(1.04);
-}
-</style>
-""", unsafe_allow_html=True)
-
-# HTML wrapper
-st.markdown("""
-<div class="center-abs">
-    <form action="/Patient_Selection">
-        <button class="center-btn">⚙️ Administrative Access</button>
-    </form>
-
-    <form action="/Patient_Selection">
-        <button class="center-btn">👩‍⚕️ Clinician Access</button>
-    </form>
-</div>
-""", unsafe_allow_html=True)
+        <form action="/Patient_Selection">
+            <button class="access-btn">👩‍⚕️ Clinician Access</button>
+        </form>
+    </div>
+    """,
+    unsafe_allow_html=True
+)

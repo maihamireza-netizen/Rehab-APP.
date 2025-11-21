@@ -41,8 +41,9 @@ def map_functional_deficit(row):
 df_json["functional_deficit"] = df_json.apply(map_functional_deficit, axis=1)
 
 # Therapy goals (mock)
+# Therapy goals (mock)
 therapy_categories = ["Mobility Goals", "Cognitive Goals", "Self-Care Goals", "Behavioral Goals"]
-df_json["therapy_goal"] = df_json["patientid"].apply(lambda x: therapy_categories[hash(x) % 4])
+df_json["therapy_goal"] = df_json["patientId"].apply(lambda x: therapy_categories[hash(x) % 4])
 
 # -------------------------------------------------
 # DARK THEME STYLE

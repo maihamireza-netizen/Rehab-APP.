@@ -1,125 +1,129 @@
 import streamlit as st
-from PIL import Image
+import base64
 
+# Page config
 st.set_page_config(page_title="RehabAiQ Access Portal", layout="wide")
 
-# --------------------------
-# Load Logo
-# --------------------------
-logo = Image.open("Logo.png")
+# Hide sidebar
+st.markdown("""
+    <style>
+        [data-testid="stSidebar"] {display: none;}
+        .block-container {padding-top: 0rem; padding-bottom: 0rem;}
+    </style>
+""", unsafe_allow_html=True)
 
-# --------------------------
-# Custom CSS Styling
-# --------------------------
-page_bg = """
+# -------------------------------------
+# Load Background Image
+# -------------------------------------
+def set_background(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{encoded}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+set_background("pages/background.jpg")   # <-- update name if needed
+
+
+# -------------------------------------
+# Centered Layout Container
+# -------------------------------------
+centered = """
 <style>
-/* Background Gradient */
-[data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #f6f7fb 0%, #eef3fa 100%);
+.login-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -45%);
+    text-align: center;
 }
-
-/* Center Main Content */
-.main-container {
-    max-width: 900px;
-    margin: auto;
-    padding-top: 40px;
-}
-
-/* Card Style */
-.access-card {
-    background-color: #ffffff;
-    padding: 22px 30px;
-    border-radius: 12px;
-    border: 1px solid #e7e7e7;
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.05);
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.access-card:hover {
-    border: 1px solid #3a8ddf;
-    transform: scale(1.02);
-    box-shadow: 0px 5px 14px rgba(58,141,223,0.25);
-}
-
-/* Continue Button */
-.continue-btn {
-    background-color: #3a8ddf;
-    color: white !important;
-    padding: 0.6em 1.4em;
-    border-radius: 8px;
-}
-
-.continue-btn:hover {
-    background-color: #276bb0 !important;
-}
-
-/* Title styling */
 .login-title {
-    font-size: 36px;
+    font-size: 52px;
     font-weight: 700;
-    color: #2e466c;
+    color: #003B4A;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.25);
 }
-
-.sub-text {
-    margin-top: -12px;
-    font-size: 17px;
-    color: #4b5b73;
+.login-subtitle {
+    font-size: 20px;
+    color: #003B4A;
+    margin-top: -10px;
+    margin-bottom: 40px;
 }
+.access-btn {{
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 40px;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 10px 15px;
+    border: 2px solid #008C99;
+    cursor: pointer;
+    transition: 0.25s;
+}}
+.admin {{
+    background-color: #008C99;
+    color: white;
+}}
+.admin:hover {{
+    background-color: #006F7A;
+}}
+.clin {{
+    background-color: rgba(255,255,255,0.8);
+    color: #006F7A;
+}}
+.clin:hover {{
+    background-color: rgba(255,255,255,1);
+}}
+.continue-btn {{
+    position: absolute;
+    right: 40px;
+    bottom: 40px;
+    padding: 12px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+    background-color: #008C99;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: 0.3s;
+}}
+.continue-btn:hover {{
+    background-color: #006F7A;
+}}
 </style>
 """
 
-st.markdown(page_bg, unsafe_allow_html=True)
+st.markdown(centered, unsafe_allow_html=True)
 
-# --------------------------
-# Layout
-# --------------------------
 
-st.image(logo, width=220)
+# -------------------------------------
+# HTML UI
+# -------------------------------------
+st.markdown("""
+<div class="login-container">
 
-st.markdown(
-    """
-    <div class="main-container">
-        <div class="login-title">RehabAiQ Access Portal</div>
-        <div class="sub-text">Select your access type to continue</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+    <div class="login-title">RehabAiQ Access Portal</div>
+    <div class="login-subtitle">Select your access type to continue</div>
 
-st.write("")
-st.write("")
+    <a href="/?page=2" class="access-btn admin">Administrative Access</a>
+    <a href="/?page=3" class="access-btn clin">Clinician Access</a>
 
-# Two-column layout for access options
-col_admin, col_clin = st.columns(2)
+</div>
 
-with col_admin:
-    admin_box = st.button("🛠️ Administrative Access", key="admin_access", use_container_width=True)
-    st.markdown(
-        """
-        <div style='text-align:center; color:#5a5a5a; margin-top:-10px;'>
-            Manage KPIs, configurations, and system dashboards.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+<a href="/?page=2">
+    <button class="continue-btn">Continue →</button>
+</a>
 
-with col_clin:
-    clin_box = st.button("🩺 Clinician Access", key="clin_access", use_container_width=True)
-    st.markdown(
-        """
-        <div style='text-align:center; color:#5a5a5a; margin-top:-10px;'>
-            Access patients, scores, and rehab recommendations.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-st.write("")
-st.write("")
-
-# Continue button (bottom-right aligned)
-right_col = st.columns([6, 1])[1]
-with right_col:
-    if st.button("Continue ➜", key="continue", use_container_width=True):
-        st.switch_page("pages/2_Patient_Selection.py")
+""", unsafe_allow_html=True)

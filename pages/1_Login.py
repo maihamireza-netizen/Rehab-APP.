@@ -1,97 +1,113 @@
 import streamlit as st
 import base64
 
-st.set_page_config(page_title="RehabAiQ Access Portal", layout="wide")
+st.set_page_config(page_title="Login", layout="wide")
 
-# =========================
-# Load Background Image
-# =========================
+
+# -----------------------------
+# Set Background Image
+# -----------------------------
 def set_bg(image_file):
     with open(image_file, "rb") as f:
-        encoded_string = base64.b64encode(f.read()).decode()
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+
     st.markdown(
         f"""
         <style>
         .stApp {{
-            background-image: url("data:image/png;base64,{encoded_string}");
+            background-image: url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+        }}
+
+        /* Center container */
+        .center-box {{
+            text-align: center;
+            margin-top: 80px;
+        }}
+
+        /* Sky-blue button style */
+        .sky-btn {{
+            background-color: #4CB8D9 !important;
+            color: white !important;
+            padding: 12px 28px !important;
+            border-radius: 25px !important;
+            border: none !important;
+            font-size: 16px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+        }}
+
+        .sky-btn:hover {{
+            background-color: #3AA8C8 !important;
+            color: white !important;
+        }}
+
+        /* Continue button */
+        .continue-btn {{
+            position: absolute;
+            right: 60px;
+            bottom: 120px;
+            background-color: #4CB8D9 !important;
+            color: white !important;
+            padding: 12px 26px !important;
+            border-radius: 25px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-set_bg("LoginBG.png")   # Make sure the filename matches exactly
+
+set_bg("LoginBG.png")   # Make sure LoginBG.png is in /pages folder or root repository
 
 
-# =========================
-# Centered Layout
-# =========================
-st.markdown("<br><br><br>", unsafe_allow_html=True)
+# -----------------------------
+# Page Layout
+# -----------------------------
+st.markdown(
+    """
+    <div style="margin-left: 40px; margin-top: 40px;">
+        <h1 style="color:#0F172A; font-weight:700;">RehabAiQ Access Portal</h1>
+        <p style="color:#1E293B; font-size:16px; margin-top:-10px;">
+            Select your access type to continue
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-col1, col2, col3 = st.columns([1,3,1])
 
-with col2:
+# -----------------------------
+# Centered Buttons
+# -----------------------------
+st.markdown("<div class='center-box'>", unsafe_allow_html=True)
 
+c1, c2, c3 = st.columns([1.5, 2, 1.5])
+
+with c2:
     st.markdown(
         """
-        <h1 style="text-align:center; color:#0b2e40; font-size:40px;">
-        RehabAiQ Access Portal
-        </h1>
-        <p style="text-align:center; font-size:18px; color:#1b1b1b;">
-        Select your access type to continue
-        </p>
+        <div style="display:flex; justify-content:center; gap:25px;">
+            <button class="sky-btn">🔧 Administrative Access</button>
+            <button class="sky-btn">🩺 Clinician Access</button>
+        </div>
         """,
         unsafe_allow_html=True
     )
 
-    # --------------------
-    # Horizontal Button Row
-    # --------------------
-    b1, b2 = st.columns([1,1])
-
-    button_style = """
-        <style>
-        .blue-btn button {
-            background-color: #48b6c8 !important;
-            color: white !important;
-            border-radius: 25px !important;
-            padding: 0.6rem 1.2rem !important;
-            font-size: 16px !important;
-            border: none !important;
-        }
-        .blue-btn button:hover {
-            background-color: #2ca4b6 !important;
-            color: white !important;
-        }
-        </style>
-    """
-
-    st.markdown(button_style, unsafe_allow_html=True)
-
-    with b1:
-        st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
-        admin = st.button("🔧 Administrative Access", key="admin_btn")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with b2:
-        st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
-        clinician = st.button("🩺 Clinician Access", key="clin_btn")
-        st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 
-# =========================
-# Continue → Patient Selection
-# =========================
-st.markdown("<br><br>", unsafe_allow_html=True)
-right_col = st.columns([6,1])[1]
-
-with right_col:
-    st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
-    continue_clicked = st.button("Continue →", key="continue_btn")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-if continue_clicked:
+# -----------------------------
+# Continue Button
+# -----------------------------
+if st.button("Continue ➜", key="cont_btn"):
     st.switch_page("pages/2_Patient_Selection.py")
+
+
+st.markdown("<div class='continue-btn'></div>", unsafe_allow_html=True)

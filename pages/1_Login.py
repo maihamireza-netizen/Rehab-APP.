@@ -3,15 +3,13 @@ import base64
 
 st.set_page_config(page_title="Login", layout="wide")
 
-
-# -----------------------------
-# Set Background Image
-# -----------------------------
+# ------------------------------------------------------------
+# 🎨 Set Background Image
+# ------------------------------------------------------------
 def set_bg(image_file):
     with open(image_file, "rb") as f:
         data = f.read()
     encoded = base64.b64encode(data).decode()
-
     st.markdown(
         f"""
         <style>
@@ -21,93 +19,63 @@ def set_bg(image_file):
             background-position: center;
             background-repeat: no-repeat;
         }}
-
-        /* Center container */
-        .center-box {{
-            text-align: center;
-            margin-top: 80px;
-        }}
-
-        /* Sky-blue button style */
-        .sky-btn {{
-            background-color: #4CB8D9 !important;
-            color: white !important;
-            padding: 12px 28px !important;
-            border-radius: 25px !important;
-            border: none !important;
-            font-size: 16px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-        }}
-
-        .sky-btn:hover {{
-            background-color: #3AA8C8 !important;
-            color: white !important;
-        }}
-
-        /* Continue button */
-        .continue-btn {{
-            position: absolute;
-            right: 60px;
-            bottom: 120px;
-            background-color: #4CB8D9 !important;
-            color: white !important;
-            padding: 12px 26px !important;
-            border-radius: 25px !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-
-set_bg("LoginBG.png")   # Make sure LoginBG.png is in /pages folder or root repository
-
-
-# -----------------------------
-# Page Layout
-# -----------------------------
-st.markdown(
-    """
-    <div style="margin-left: 40px; margin-top: 40px;">
-        <h1 style="color:#0F172A; font-weight:700;">RehabAiQ Access Portal</h1>
-        <p style="color:#1E293B; font-size:16px; margin-top:-10px;">
-            Select your access type to continue
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+set_bg("LoginBG.png")    # make sure this file is in your repo root
 
 
-# -----------------------------
-# Centered Buttons
-# -----------------------------
-st.markdown("<div class='center-box'>", unsafe_allow_html=True)
+# ------------------------------------------------------------
+# PAGE LAYOUT
+# ------------------------------------------------------------
+st.markdown("<h1 style='color:#0F172A; font-weight:700;'>RehabAiQ Access Portal</h1>", unsafe_allow_html=True)
+st.markdown("<p style='margin-top:-10px; font-size:16px;'>Select your access type to continue</p>", unsafe_allow_html=True)
 
-c1, c2, c3 = st.columns([1.5, 2, 1.5])
+# Center the two buttons using CSS
+st.markdown("""
+    <style>
+        .center-box {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .access-btn {
+            background-color: #3DB5D9;
+            color: white !important;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            transition: 0.2s ease-in-out;
+        }
+        .access-btn:hover {
+            background-color: #2AA5C5;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+            transform: translateY(-2px);
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-with c2:
-    st.markdown(
-        """
-        <div style="display:flex; justify-content:center; gap:25px;">
-            <button class="sky-btn">🔧 Administrative Access</button>
-            <button class="sky-btn">🩺 Clinician Access</button>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# ------------------------------------------------------------
+# BUTTON ROW
+# ------------------------------------------------------------
+col1, col2, col3 = st.columns([1,3,1])
 
-st.markdown("</div>", unsafe_allow_html=True)
+with col2:
+    st.markdown("<div class='center-box'>", unsafe_allow_html=True)
 
+    admin_clicked = st.button("⚙️ Administrative Access", key="admin_btn", help="Enter the administrative dashboard", use_container_width=False)
+    clinician_clicked = st.button("👩‍⚕️ Clinician Access", key="clinician_btn", help="Enter the clinician dashboard", use_container_width=False)
 
-# -----------------------------
-# Continue Button
-# -----------------------------
-if st.button("Continue ➜", key="cont_btn"):
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# Navigation Logic
+# ------------------------------------------------------------
+if admin_clicked or clinician_clicked:
     st.switch_page("pages/2_Patient_Selection.py")
-
-
-st.markdown("<div class='continue-btn'></div>", unsafe_allow_html=True)

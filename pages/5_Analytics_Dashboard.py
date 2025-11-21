@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
-import plotly.graph_objects as go
 import numpy as np
 
 st.set_page_config(page_title="Analytics Dashboard", layout="wide")
@@ -22,10 +21,7 @@ def load_csv():
 df_json = load_json()
 df_csv = load_csv()
 
-
-# -------------------------------------------------
-# FIX FIELD NAMES
-# -------------------------------------------------
+# Fix naming if needed
 if "patientid" in df_json.columns:
     df_json.rename(columns={"patientid": "patientId"}, inplace=True)
 
@@ -52,135 +48,92 @@ df_json["therapy_goal"] = df_json["patientId"].apply(lambda x: therapy_categorie
 
 
 # -------------------------------------------------
-# PAGE STYLES (Sidebar light, dashboard dark)
+# PAGE HEADER
 # -------------------------------------------------
-st.markdown("""
-<style>
-
-    /* Sidebar stays white */
-    section[data-testid="stSidebar"] {
-        background-color: #f8f9fa !important;
-    }
-
-    /* Dashboard background */
-    div.block-container {
-        background-color: #0d1117 !important;
-        padding-top: 25px;
-    }
-
-    /* Text color inside dashboard */
-    h1, h2, h3, h4, h5, h6, p, label, span, div {
-        color: #f3f4f6 !important;
-    }
-
-    /* Dataframe styling */
-    .dataframe th {
-        color: white !important;
-        background-color: #1f2937 !important;
-    }
-    .dataframe td {
-        color: white !important;
-        background-color: #111827 !important;
-    }
-
-</style>
-""", unsafe_allow_html=True)
+st.title("📊 RehabAiQ — Analytics Dashboard")
 
 
 # -------------------------------------------------
-# HEADER
+# 4-COLUMN TOP METRICS + DONUTS
 # -------------------------------------------------
-st.markdown("<h1>📊 RehabAiQ — Analytics Dashboard</h1>", unsafe_allow_html=True)
-st.markdown("<p style='margin-bottom:20px;'>Performance view of all patients and recommended settings.</p>", unsafe_allow_html=True)
+col1, col2, col3, col4 = st.columns([1.3, 0.8, 1, 1])
 
-
-
-# -------------------------------------------------
-# TOP ROW CHARTS
-# -------------------------------------------------
-col1, col2, col3, col4 = st.columns([1.2, 1, 1, 1])
-
-# Suggested Facility bar
+# Suggested Facility Chart
 with col1:
-    st.markdown("### Suggested Facility Setting")
-    facility_counts = df_json["potentialFacilitySetting"].value_counts()
+    st.subheader("Suggested Facility Setting")
 
+    facility_counts = df_json["potentialFacilitySetting"].value_counts()
     fig = px.bar(
         facility_counts,
+        labels={"value": "Count", "index": "Facility"},
         color=facility_counts.index,
-        color_discrete_sequence=px.colors.qualitative.Bold
+        color_discrete_sequence=px.colors.qualitative.Pastel
     )
-    fig.update_layout(
-        paper_bgcolor="#0d1117",
-        plot_bgcolor="#0d1117",
-        font=dict(color="white")
-    )
+    fig.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
 # Total Patients
 with col2:
-    st.markdown("### Total Patients")
-    st.markdown(f"<h1 style='font-size:72px; color:#10b981;'>{len(df_json)}</h1>", unsafe_allow_html=True)
+    st.subheader("Total Patients")
+    st.metric(label="", value=len(df_json))
 
-# Stability Risk donut
+# Stability Donut
 with col3:
-    st.markdown("### Stability Risk Score")
+    st.subheader("Stability Risk Score")
     fig = px.pie(
         df_json,
         names="patientStabilityConditionRiskScore",
-        hole=0.45,
+        hole=0.4,
         color_discrete_sequence=px.colors.qualitative.Set2
     )
-    fig.update_layout(paper_bgcolor="#0d1117", font=dict(color="white"))
+    fig.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
-# Participation Ability donut
+# Ability Donut
 with col4:
-    st.markdown("### Participation Ability")
+    st.subheader("Participation Ability")
     fig = px.pie(
         df_json,
         names="patientParticipationAbility",
-        hole=0.45,
+        hole=0.4,
         color_discrete_sequence=px.colors.qualitative.Set3
     )
-    fig.update_layout(paper_bgcolor="#0d1117", font=dict(color="white"))
+    fig.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
 
-
 # -------------------------------------------------
-# SECOND ROW (Functional Deficit + Therapy)
+# SECOND ROW: Functional Deficit + Therapy Goals
 # -------------------------------------------------
 col5, col6 = st.columns(2)
 
 with col5:
-    st.markdown("### Functional Deficiencies")
+    st.subheader("Functional Deficiencies")
     fig = px.pie(
         df_json,
         names="functional_deficit",
-        hole=0.45,
-        color_discrete_sequence=px.colors.qualitative.Dark24
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Prism
     )
-    fig.update_layout(paper_bgcolor="#0d1117", font=dict(color="white"))
+    fig.update_layout(height=300)
     st.plotly_chart(fig, use_container_width=True)
 
 with col6:
-    st.markdown("### Therapy Goals")
+    st.subheader("Therapy Goals")
     fig = px.pie(
         df_json,
         names="therapy_goal",
-        hole=0.45,
-        color_discrete_sequence=px.colors.qualitative.Alphabet
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Safe
     )
-    fig.update_layout(paper_bgcolor="#0d1117", font=dict(color="white"))
+    fig.update_layout(height=300)
     st.plotly_chart(fig, use_container_width=True)
-
 
 
 # -------------------------------------------------
 # PATIENT TABLE
 # -------------------------------------------------
-st.markdown("### Patients List")
+st.subheader("Patients List")
 
 table = df_json[[
     "patientId",
@@ -202,4 +155,4 @@ table = table.rename(columns={
     "therapy_goal": "Therapy Goal"
 })
 
-st.dataframe(table, use_container_width=True, height=480)
+st.dataframe(table, use_container_width=True, height=500)

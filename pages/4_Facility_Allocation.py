@@ -82,46 +82,53 @@ with left:
 with right:
     st.markdown("<h3 style='margin-top:0px;'>📊 Facility Allocation Matrix</h3>", unsafe_allow_html=True)
 
-    # Quadrant shading
     fig = go.Figure()
 
-    # Create shaded background regions
+    # Stronger quadrant colors (clean healthcare palette)
     colors = {
-        "ALF": "rgba(34,197,94,0.25)",   # green
-        "ARF": "rgba(59,130,246,0.25)",  # blue
-        "SNF": "rgba(168,85,247,0.25)",  # purple
-        "ACH": "rgba(239,68,68,0.25)"    # red
+        "ALF": "rgba(16,185,129,0.40)",   # Strong Emerald Green
+        "ARF": "rgba(59,130,246,0.40)",   # Bright Clinical Blue
+        "SNF": "rgba(168,85,247,0.40)",   # Rich Purple
+        "ACH": "rgba(239,68,68,0.40)"     # Strong Red
     }
 
-    # Quadrant grid coordinates
+    # Quadrant regions (corrected layout)
     regions = [
-        ("ALF", 1, 3, 1, 2),   # Medium/High Ability + Low Risk
-        ("ARF", 1, 3, 2, 3),   # Medium/High Ability + Medium/High Risk
         ("SNF", 0, 1, 0, 3),   # Low Ability across all risks
-        ("ACH", 2, 3, 2, 3),   # High Risk + High Ability
+        ("ALF", 1, 2, 0, 1),   # Medium Ability + Low Risk
+        ("ARF", 1, 2, 1, 3),   # Medium Ability + Med/High Risk
+        ("ALF", 2, 3, 0, 1),   # High Ability + Low Risk
+        ("ARF", 2, 3, 1, 2),   # High Ability + Medium Risk
+        ("ACH", 2, 3, 2, 3),   # High Ability + High Risk
     ]
 
+    # Add shaded rectangles
     for name, y0, y1, x0, x1 in regions:
         fig.add_shape(
             type="rect",
-            x0=x0, x1=x1,
-            y0=y0, y1=y1,
+            x0=x0, x1=x1, y0=y0, y1=y1,
             fillcolor=colors[name],
-            line=dict(width=0),
+            line=dict(color="white", width=3),
             layer="below"
         )
 
-    # Scatter plot of patients
+    # Scatter plot — enhanced styling
     fig.add_trace(go.Scatter(
         x=df["stability_num"],
         y=df["ability_num"],
         mode="markers",
-        marker=dict(size=12, color="yellow", line=dict(color="black", width=1)),
+        marker=dict(
+            size=16,
+            color="yellow",
+            line=dict(color="black", width=2),
+            opacity=0.9,
+            symbol="circle"
+        ),
         text=df["patientid"] if "patientid" in df.columns else df.index,
         hovertemplate="<b>Patient:</b> %{text}<br>Ability: %{y}<br>Stability: %{x}<extra></extra>"
     ))
 
-    # Add quadrant labels
+    # Improved quadrant labels
     labels = {
         "ALF": (0.5, 2.5),
         "ARF": (2.0, 2.5),
@@ -131,30 +138,37 @@ with right:
 
     for lbl, (x, y) in labels.items():
         fig.add_annotation(
-            x=x,
-            y=y,
+            x=x, y=y,
             text=f"<b>{lbl}</b>",
             showarrow=False,
-            font=dict(size=22, color="#111"),
-            opacity=0.8
+            font=dict(size=28, color="#111", family="Arial Black"),
+            opacity=0.9
         )
 
+    # Axes, layout, style
     fig.update_layout(
         xaxis=dict(
             tickvals=[0.5, 1.5, 2.5],
             ticktext=["Low Risk", "Medium Risk", "High Risk"],
-            title="Stability Condition Risk",
-            range=[0, 3]
+            title="<b>Stability Condition Risk</b>",
+            range=[0, 3],
+            zeroline=False,
+            gridcolor="#e5e7eb",
+            showgrid=True
         ),
         yaxis=dict(
             tickvals=[0.5, 1.5, 2.5],
             ticktext=["Low Ability", "Medium Ability", "High Ability"],
-            title="Participation Ability",
-            range=[0, 3]
+            title="<b>Participation Ability</b>",
+            range=[0, 3],
+            zeroline=False,
+            gridcolor="#e5e7eb",
+            showgrid=True
         ),
-        height=650,
+        height=700,
         margin=dict(l=20, r=20, t=40, b=20),
-        plot_bgcolor="white"
+        plot_bgcolor="white",
     )
 
     st.plotly_chart(fig, use_container_width=True)
+

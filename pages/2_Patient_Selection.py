@@ -39,9 +39,9 @@ df = load_json()
 patient_list = df["patientId"].tolist()
 
 
-# ------------------------------------
-# Custom CSS — clean modern card look
-# ------------------------------------
+# --------------------------
+# Custom CSS
+# --------------------------
 st.markdown("""
 <style>
 
@@ -67,22 +67,22 @@ st.markdown("""
     margin-bottom: 25px;
 }
 
-.btn-select {
-    background-color: #2e94d1 !important;
+.btn-green {
+    background-color: #2ECC71 !important;
     color: white !important;
     border-radius: 6px;
     padding: 6px 14px;
 }
 
-.btn-clear {
-    background-color: #cccccc !important;
-    color: #333 !important;
+.btn-red {
+    background-color: #E74C3C !important;
+    color: white !important;
     border-radius: 6px;
     padding: 6px 14px;
 }
 
 .continue-btn {
-    background-color: #2e94d1 !important;
+    background-color: #5DADE2 !important;   /* LIGHT BLUE */
     color: white !important;
     padding: 0.75em 1.6em;
     border-radius: 8px;
@@ -90,11 +90,12 @@ st.markdown("""
 }
 
 .continue-btn:hover {
-    background-color: #1e6fa1 !important;
+    background-color: #3498DB !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # ------------------------------------
@@ -103,7 +104,6 @@ st.markdown("""
 st.write("")
 st.write("")
 
-# Wrapped inside a centered container
 center = st.columns([0.15, 0.70, 0.15])[1]
 
 with center:
@@ -118,7 +118,9 @@ with center:
     # Selection UI
     col_left, col_right = st.columns([3, 1])
 
-    # Left = multiselect
+    # -----------------------------------------
+    # LEFT SIDE: MULTISELECT
+    # -----------------------------------------
     with col_left:
         st.write("**Choose Patients:**")
 
@@ -134,20 +136,58 @@ with center:
 
         st.session_state.selected_patients = selected
 
-    # Right = quick buttons
+    # -----------------------------------------
+    # RIGHT SIDE: SELECT / DESELECT in ONE ROW
+    # -----------------------------------------
     with col_right:
         st.write("**Quick Actions:**")
-        if st.button("Select All"):
-            st.session_state.selected_patients = patient_list
-        if st.button("Deselect All"):
-            st.session_state.selected_patients = []
+        b1, b2 = st.columns(2)
+
+        with b1:
+            if st.button("Select All", key="select_all", help="Select all patients",
+                         type="primary"):
+                st.session_state.selected_patients = patient_list
+                st.experimental_rerun()
+
+        with b2:
+            if st.button("Deselect All", key="deselect_all", help="Clear all patients"):
+                st.session_state.selected_patients = []
+                st.experimental_rerun()
+
+        # Inject CSS for button colors (Streamlit buttons require after creation)
+        st.markdown("""
+            <style>
+            div[data-testid="column"] div.stButton button[kind="primary"] {
+                background-color: #2ECC71 !important;
+            }
+            div[data-testid="column"] div.stButton:nth-child(2) button {
+                background-color: #E74C3C !important;
+                color: white !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
     st.write("")
 
+    # -----------------------------------------
     # Continue Button
+    # -----------------------------------------
     c = st.columns([0.70, 0.30])[1]
     with c:
-        if st.button("Continue ➜", use_container_width=True):
+        if st.button("Continue ➜", use_container_width=True, key="continue_btn"):
             st.switch_page("pages/3_Patient_Profile.py")
+
+        st.markdown("""
+            <style>
+            div.stButton > button {
+                background-color: #5DADE2 !important; 
+                color:white !important; 
+                border-radius:8px; 
+                padding:0.6em; 
+                font-size:16px;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
 
     st.markdown("</div>", unsafe_allow_html=True)

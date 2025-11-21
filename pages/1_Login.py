@@ -1,6 +1,5 @@
 import streamlit as st
 import base64
-from streamlit_extras.switch_page_button import switch_page
 
 st.set_page_config(page_title="RehabAiQ Login", layout="wide")
 
@@ -33,7 +32,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Center the buttons
+# Center buttons
 st.write("")
 st.write("")
 col1, col2, col3 = st.columns([1,1,1])
@@ -42,6 +41,7 @@ with col2:
     admin = st.button("⚙️ Administrative Access", use_container_width=True)
     clinician = st.button("👩‍⚕️ Clinician Access", use_container_width=True)
 
-# Redirect logic
+# ✔ Modern Streamlit navigation
 if admin or clinician:
-    switch_page("Patient_Selection")
+    st.experimental_set_query_params(page="Patient_Selection")
+    st.experimental_rerun()

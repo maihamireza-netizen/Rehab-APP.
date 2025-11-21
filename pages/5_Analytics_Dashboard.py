@@ -141,6 +141,21 @@ facility_colors = {
     "ACH": "background-color:#F87171;color:white;",
 }
 
+# Ability Color Mapping
+ability_colors = {
+    "Low Ability": "background-color:#F87171;color:white;",     # Red
+    "Medium Ability": "background-color:#FBBF24;color:white;",  # Amber
+    "High Ability": "background-color:#34D399;color:white;",    # Green
+}
+
+# Risk Score Color Mapping
+risk_colors = {
+    "Low Risk": "background-color:#34D399;color:white;",
+    "Medium Risk": "background-color:#FBBF24;color:white;",
+    "High Risk": "background-color:#F87171;color:white;",
+}
+
+# Prepare table
 styled_df = df_json[[
     "patientId",
     "potentialFacilitySetting",
@@ -161,12 +176,18 @@ styled_df = df_json[[
     "therapy_goal": "Therapy Goal"
 })
 
-def color_facility(val):
-    return facility_colors.get(val, "")
+# Styling function
+def color_cells(val, mapping):
+    return mapping.get(val, "")
 
 st.subheader("Patients List")
+
 st.dataframe(
-    styled_df.style.applymap(color_facility, subset=["Facility"]),
+    styled_df.style
+        .applymap(lambda v: color_cells(v, facility_colors), subset=["Facility"])
+        .applymap(lambda v: color_cells(v, ability_colors), subset=["Ability"])
+        .applymap(lambda v: color_cells(v, risk_colors), subset=["Risk Score"]),
     use_container_width=True,
-    height=600
+    height=650
 )
+

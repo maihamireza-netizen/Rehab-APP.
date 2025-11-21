@@ -16,8 +16,8 @@ def load_json():
 
 df = load_json()
 
-# Ensure correct patient field
-df["Patient ID"] = df["Patient ID"].astype(str)
+# Ensure correct patient name column
+df["patientName"] = df["patientName"].astype(str)
 
 # Ordered clinical categories
 ability_order = ["Low Ability", "Medium Ability", "High Ability"]
@@ -36,7 +36,7 @@ stability_map = {"Low Risk": 0.5, "Medium Risk": 1.5, "High Risk": 2.5}
 df["ability_num"] = df["patientParticipationAbility"].map(ability_map)
 df["stability_num"] = df["patientStabilityConditionRiskScore"].map(stability_map)
 
-df["label"] = df["Patient ID"]
+df["label"] = df["patientName"]  # use full patient name everywhere
 
 # -------------------------
 # Page Header
@@ -91,7 +91,7 @@ with left:
 
 
 # -------------------------
-# RIGHT COLUMN — MATRIX + TABLES
+# RIGHT COLUMN — MATRIX + SUMMARY + TABLE
 # -------------------------
 with right:
 
@@ -100,9 +100,8 @@ with right:
     # ---------------------------------------------
     st.markdown("### 📌 Facility Summary")
 
-    # Determine facility using quadrant rules
     def assign_facility(a, s):
-        if a < 1:  # Low Ability
+        if a < 1:  # Low Ability → always SNF
             return "SNF"
         if a < 2 and s < 1:
             return "ALF"
@@ -120,13 +119,11 @@ with right:
     )
 
     facility_counts = df["Assigned Facility"].value_counts().reindex(["SNF", "ALF", "ARF", "ACH"]).fillna(0)
+    total = len(df)
 
     snf, alf, arf, ach = facility_counts["SNF"], facility_counts["ALF"], facility_counts["ARF"], facility_counts["ACH"]
 
-    total = len(df)
-
     colA, colB, colC, colD = st.columns(4)
-
     colA.metric("🏥 SNF", f"{snf}", f"{(snf/total)*100:.1f}%")
     colB.metric("🏡 ALF", f"{alf}", f"{(alf/total)*100:.1f}%")
     colC.metric("🛏 ARF", f"{arf}", f"{(arf/total)*100:.1f}%")
@@ -145,9 +142,6 @@ with right:
         "ACH": "rgba(255,48,48,0.35)"
     }
 
-    fig = go.Figure()
-
-    # Quadrants
     regions = [
         ("SNF", 0, 1, 0, 3),
         ("ALF", 1, 2, 0, 1),
@@ -156,6 +150,8 @@ with right:
         ("ARF", 2, 3, 1, 2),
         ("ACH", 2, 3, 2, 3),
     ]
+
+    fig = go.Figure()
 
     for name, y0, y1, x0, x1 in regions:
         fig.add_shape(
@@ -167,13 +163,12 @@ with right:
             layer="below"
         )
 
-    # Scatter with patient labels
     fig.add_trace(go.Scatter(
         x=df["stability_perturbed"],
         y=df["ability_perturbed"],
         mode="markers+text",
         marker=dict(size=14, color="yellow", line=dict(color="black", width=1)),
-        text=df["Patient ID"],
+        text=df["patientName"],
         textposition="top center",
         hovertemplate="<b>%{text}</b><br>Ability: %{y:.2f}<br>Stability: %{x:.2f}<extra></extra>"
     ))
@@ -205,7 +200,7 @@ with right:
     st.markdown("### 📋 Patient Allocation Table")
 
     allocation_df = df[[
-        "Patient ID",
+        "patientName",
         "patientParticipationAbility",
         "patientStabilityConditionRiskScore",
         "Assigned Facility"
@@ -213,3 +208,13 @@ with right:
 
     st.dataframe(allocation_df, use_container_width=True)
 
+
+    # ---------------------------------------------
+    # CLICK-TO-OPEN PATIENT PROFILE (Option A)
+    # ---------------------------------------------
+    st.markdown("### 👉 Open Patient Profile")
+
+    for idx, row in allocation_df.iterrows():
+        if st.button(f"Open {row['patientName']}", key=f"open_{idx}"):
+            st.session_state.selected_patient = row["patientName"]
+            st.switch_page("pages/3_Patient_Profile.py")

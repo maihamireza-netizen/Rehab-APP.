@@ -4,7 +4,7 @@ import base64
 st.set_page_config(page_title="RehabAiQ Access Portal", layout="wide")
 
 # -----------------------------
-# 🔹 Add Background Image
+# Add Background Image
 # -----------------------------
 def add_bg(image_file):
     with open(image_file, "rb") as f:
@@ -26,50 +26,52 @@ def add_bg(image_file):
 
 add_bg("pages/background.jpg")
 
+
 # -----------------------------
-# 🔹 Hide the sidebar (optional)
+# PAGE CONTENT
 # -----------------------------
+
+# Title (kept the same)
 st.markdown("""
-<style>
-    [data-testid="stSidebar"] { display: none; }
-    .block-container { padding-top: 3rem; }
-</style>
+<div style="margin-top: 30px; padding-left: 10px;">
+    <h1 style="color:#0a2b33;">RehabAiQ Access Portal</h1>
+    <p style="font-size:18px; color:#0a2b33;">Select your access type to continue</p>
+</div>
 """, unsafe_allow_html=True)
 
+st.write("")
+
 # -----------------------------
-# 🔹 ORIGINAL PAGE UI (unchanged)
+# CENTER BUTTONS
 # -----------------------------
+center = st.container()
+with center:
+    colA, colB, colC = st.columns([2, 1, 2])   # center col wider
 
-st.title("RehabAiQ Access Portal")
-st.write("Select your access type to continue")
+    with colB:
+        st.button("🔧 Administrative Access", key="admin", use_container_width=True)
+        st.write("")
+        st.button("🩺 Clinician Access", key="clin", use_container_width=True)
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.button("🔧 Administrative Access", key="admin")
-
-with col2:
-    st.button("🩺 Clinician Access", key="clin")
-
-st.write("")
+# Spacing
 st.write("")
 st.write("")
 
-# Continue button aligned to the right
-st.markdown(
-    """
-    <div style="text-align:right; padding-right:20px;">
-        <a href="/?page=2">
-            <button style="
-                background-color:#1F7A8C;
-                color:white;
-                padding:10px 22px;
-                border-radius:8px;
-                border:none;
-                font-size:16px;
-            ">Continue →</button>
-        </a>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+
+# -----------------------------
+# CONTINUE BUTTON (RIGHT SIDE)
+# -----------------------------
+st.markdown("""
+<div style="text-align:right; padding-right:40px; margin-top:20px;">
+    <a href="/?page=2">
+        <button style="
+            background-color:#0c6e7f;
+            color:white;
+            padding:10px 22px;
+            border-radius:8px;
+            border:none;
+            font-size:16px;
+        ">Continue →</button>
+    </a>
+</div>
+""", unsafe_allow_html=True)

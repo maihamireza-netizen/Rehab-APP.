@@ -2,157 +2,171 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
-import numpy as np
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Analytics Dashboard", layout="wide")
 
-# -------------------------------------------------
-# LOAD DATA
-# -------------------------------------------------
+# -------------------------
+# Load Data
+# -------------------------
 @st.cache_data
 def load_json():
     with open("idx_vw_rehab_recruitment_DEV.json") as f:
         return pd.DataFrame(json.load(f))
 
-@st.cache_data
-def load_csv():
-    return pd.read_csv("merged_data_RehabAiQ_Demo.csv")
-
 df_json = load_json()
-df_csv = load_csv()
 
-# Fix naming if needed
-if "patientid" in df_json.columns:
-    df_json.rename(columns={"patientid": "patientId"}, inplace=True)
-
-
-# -------------------------------------------------
-# MOCK FIELDS (Functional Deficit + Therapy Goals)
-# -------------------------------------------------
-def map_functional_deficit(row):
-    risk = row["patientStabilityConditionRiskScore"]
-    ability = row["patientParticipationAbility"]
-
-    if ability == "Low Ability" and risk == "High Risk":
-        return "Complex Deficit"
-    if risk == "High Risk":
+# -------------------------
+# Mock Functional Deficit Category
+# -------------------------
+def mock_functional_deficit(row):
+    if row["patientParticipationAbility"] == "Low Ability":
         return "High Deficit"
-    if ability == "Low Ability":
-        return "High Deficit"
-    return "Medium Deficit"
+    if row["patientParticipationAbility"] == "Medium Ability":
+        return "Medium Deficit"
+    return "Low Deficit"
 
-df_json["functional_deficit"] = df_json.apply(map_functional_deficit, axis=1)
+df_json["functional_deficit"] = df_json.apply(mock_functional_deficit, axis=1)
 
-therapy_categories = ["Mobility Goals", "Cognitive Goals", "Self-Care Goals", "Behavioral Goals"]
-df_json["therapy_goal"] = df_json["patientId"].apply(lambda x: therapy_categories[hash(x) % 4])
+# -------------------------
+# Therapy Goal Mock
+# -------------------------
+therapy_goals = ["Mobility Goals", "Cognitive Goals", "Self-Care Goals", "Behavioral Goals"]
+df_json["therapy_goal"] = df_json["patientId"].apply(lambda x: therapy_goals[hash(x) % 4])
 
+# -------------------------
+# Page Header
+# -------------------------
+st.markdown("""
+<div style="display:flex; align-items:center; gap:12px;">
+    <img src='Logo.png' width='120'>
+    <h1 style='margin-top:15px;'>RehabAiQ — Analytics Dashboard</h1>
+</div>
+""", unsafe_allow_html=True)
 
-# -------------------------------------------------
-# PAGE HEADER
-# -------------------------------------------------
-st.title("📊 RehabAiQ — Analytics Dashboard")
+st.write("")
 
+# -------------------------
+# TOP ROW — PIE CHARTS
+# -------------------------
+col1, col2, col3, col4 = st.columns(4)
 
-# -------------------------------------------------
-# 4-COLUMN TOP METRICS + DONUTS
-# -------------------------------------------------
-col1, col2, col3, col4 = st.columns([1.3, 0.8, 1, 1])
-
-# Suggested Facility Chart
 with col1:
-    st.subheader("Suggested Facility Setting")
-
-    facility_counts = df_json["potentialFacilitySetting"].value_counts()
-    fig = px.bar(
-        facility_counts,
-        labels={"value": "Count", "index": "Facility"},
-        color=facility_counts.index,
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    fig.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20))
-    st.plotly_chart(fig, use_container_width=True)
-
-# Total Patients
-with col2:
-    st.subheader("Total Patients")
-    st.metric(label="", value=len(df_json))
-
-# Stability Donut
-with col3:
     st.subheader("Stability Risk Score")
-    fig = px.pie(
+    fig_risk = px.pie(
         df_json,
         names="patientStabilityConditionRiskScore",
-        hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Set2
+        color="patientStabilityConditionRiskScore",
+        color_discrete_map={
+            "Low Risk": "#7CD992",
+            "Medium Risk": "#FFAF66",
+            "High Risk": "#FF6B6B"
+        }
     )
-    fig.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+    fig_risk.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_risk, use_container_width=True)
 
-# Ability Donut
-with col4:
+with col2:
     st.subheader("Participation Ability")
-    fig = px.pie(
+    fig_ability = px.pie(
         df_json,
         names="patientParticipationAbility",
-        hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Set3
+        color="patientParticipationAbility",
+        color_discrete_map={
+            "Low Ability": "#A78BFA",
+            "Medium Ability": "#60A5FA",
+            "High Ability": "#34D399"
+        }
     )
-    fig.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+    fig_ability.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_ability, use_container_width=True)
 
-
-# -------------------------------------------------
-# SECOND ROW: Functional Deficit + Therapy Goals
-# -------------------------------------------------
-col5, col6 = st.columns(2)
-
-with col5:
-    st.subheader("Functional Deficiencies")
-    fig = px.pie(
+with col3:
+    st.subheader("Functional Deficit")
+    fig_deficit = px.pie(
         df_json,
         names="functional_deficit",
-        hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Prism
+        color="functional_deficit",
+        color_discrete_map={
+            "Low Deficit": "#6EE7B7",
+            "Medium Deficit": "#60A5FA",
+            "High Deficit": "#F472B6"
+        }
     )
-    fig.update_layout(height=300)
-    st.plotly_chart(fig, use_container_width=True)
+    fig_deficit.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_deficit, use_container_width=True)
 
-with col6:
+with col4:
     st.subheader("Therapy Goals")
-    fig = px.pie(
+    fig_goals = px.pie(
         df_json,
         names="therapy_goal",
-        hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Safe
+        color="therapy_goal",
+        color_discrete_map={
+            "Mobility Goals": "#34D399",
+            "Cognitive Goals": "#FBBF24",
+            "Self-Care Goals": "#60A5FA",
+            "Behavioral Goals": "#F87171"
+        }
     )
-    fig.update_layout(height=300)
-    st.plotly_chart(fig, use_container_width=True)
+    fig_goals.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_goals, use_container_width=True)
 
+# -------------------------
+# FACILITY SETTING BAR CHART
+# -------------------------
+st.subheader("Suggested Facility Setting")
+fig_fac = px.bar(
+    df_json,
+    x="potentialFacilitySetting",
+    color="potentialFacilitySetting",
+    color_discrete_map={
+        "ALF": "#34D399",
+        "ARF": "#60A5FA",
+        "SNF": "#A78BFA",
+        "ACH": "#F87171"
+    }
+)
+st.plotly_chart(fig_fac, use_container_width=True)
 
-# -------------------------------------------------
-# PATIENT TABLE
-# -------------------------------------------------
-st.subheader("Patients List")
+# -------------------------
+# PATIENT LIST TABLE
+# -------------------------
 
-table = df_json[[
+# Facility Color Mapping
+facility_colors = {
+    "ALF": "background-color:#34D399;color:white;",
+    "ARF": "background-color:#60A5FA;color:white;",
+    "SNF": "background-color:#A78BFA;color:white;",
+    "ACH": "background-color:#F87171;color:white;",
+}
+
+styled_df = df_json[[
     "patientId",
-    "patientName",
     "potentialFacilitySetting",
     "patientStabilityConditionRiskScore",
     "patientParticipationAbility",
+    "patientPrimaryPayor",
+    "patientAge",
     "functional_deficit",
     "therapy_goal"
-]]
-
-table = table.rename(columns={
+]].rename(columns={
     "patientId": "Patient ID",
-    "patientName": "Patient Name",
-    "potentialFacilitySetting": "Best Setting",
-    "patientStabilityConditionRiskScore": "Risk",
+    "potentialFacilitySetting": "Facility",
+    "patientStabilityConditionRiskScore": "Risk Score",
     "patientParticipationAbility": "Ability",
+    "patientPrimaryPayor": "Payor",
+    "patientAge": "Age",
     "functional_deficit": "Functional Deficit",
     "therapy_goal": "Therapy Goal"
 })
 
-st.dataframe(table, use_container_width=True, height=500)
+def color_facility(val):
+    return facility_colors.get(val, "")
+
+st.subheader("Patients List")
+st.dataframe(
+    styled_df.style.applymap(color_facility, subset=["Facility"]),
+    use_container_width=True,
+    height=600
+)
